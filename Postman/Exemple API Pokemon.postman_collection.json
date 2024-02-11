@@ -1,0 +1,404 @@
+{
+	"info": {
+		"_postman_id": "454d0d25-a030-4122-92ec-a255e71a368d",
+		"name": "Exemple API Pokemon",
+		"description": "# About this collection\n\nIt contains very simple requests for a series of tests that validate different aspects of an API, including use of file data and random values.\n\nAll example are using Tyradex Pokemon API ([Tyradex - Une API Pokémon en français](https://tyradex.tech/)).\n\nVerifications included :\n\n1. **Status code verification:** We'll check if the API returns the expected status codes for various requests.\n2. **JSON schema verification:** We'll make sure the JSON response conforms to a specified JSON Schema, ensuring API contracts are honored.\n3. **Response time verification:** We'll verify that the API's response time is within the acceptable range.\n    \n\n_Instructions_ :\n\n- Import collection and environment (environment only include TestURL variable which has to be set to [https://tyradex.tech/api/v1/pokemon](https://tyradex.tech/api/v1/pokemon))\n- You'll need ListePokemon.csv file for the request with data file entry: choose Run folder then Select File in data section ([Run collections using imported data | Postman Learning Center](https://learning.postman.com/docs/collections/running-collections/working-with-data-files/))",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32325775"
+	},
+	"item": [
+		{
+			"name": "GET Données d'un Pokemon (NON REG)",
+			"item": [
+				{
+					"name": "FichePokemonOK",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Vérification cas passant : pokemon existant, avec la bonne catégorie, le bon nom  ",
+									"// Vérification du schéma de la réponse renvoyée et du temps de réponse < 5s ",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Teste que pour ce pokemon les données renvoyées sont les bonnes (vérification de quelques unes des valeurs...)",
+									"pm.test(\"Validation du retour (données du Pokemon) \", function () {",
+									"    var jsonData = pm.response.json();",
+									"   pm.expect(jsonData.pokedexId).equals(pm.collectionVariables.get(\"PokemonId\"));",
+									"   pm.expect(jsonData.generation).equals(pm.collectionVariables.get(\"PokemonGeneration\"));",
+									"   pm.expect(jsonData.category).equals(pm.collectionVariables.get(\"PokemonCategorie\"));",
+									"   pm.expect(jsonData.name.fr).equals(pm.collectionVariables.get(\"PokemonName\"));",
+									"});",
+									"",
+									"// Validation d'une partie du schéma",
+									"const ExpectedSchema = {",
+									"  \"properties\": {",
+									"        \"pokedexId\": {",
+									"            \"type\": \"integer\"",
+									"          },",
+									"          \"generation\": {",
+									"            \"type\": \"integer\"",
+									"          },",
+									"          \"category\": {",
+									"            \"type\": \"string\"",
+									"          },",
+									"        \"height\":{",
+									"            \"type\": \"string\"",
+									"          },",
+									"         \"weight\":{",
+									"            \"type\": \"string\"",
+									"          },",
+									"         \"egg_groups\":{",
+									"            \"type\": \"array\"",
+									"          },         ",
+									"         \"name\": ",
+									"          {",
+									"           \"properties\": {",
+									"                \"fr\": {",
+									"                    \"type\": \"string\"",
+									"                },",
+									"                \"en\": {",
+									"                    \"type\": \"string\"",
+									"                },",
+									"                \"jp\": {",
+									"                    \"type\": \"string\"",
+									"            }",
+									"        }",
+									"      }",
+									"  }",
+									"};",
+									"",
+									"pm.test('Validation du shema', function() {",
+									"  pm.response.to.have.jsonSchema(ExpectedSchema);",
+									"});",
+									"",
+									"pm.test(\"Validation temps de réponse < 5s\", function () {",
+									"    const fiveSecondsMs = 5_000; // 5 seconds in milliseconds",
+									"    pm.expect(pm.response.responseTime).to.be.below(fiveSecondsMs);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Pokemon dont on veut afficher les valeurs\r",
+									"pm.collectionVariables.set(\"PokemonId\", 248);\r",
+									"\r",
+									"// Variables pour vérification des valeurs renvoyées\r",
+									"pm.collectionVariables.set(\"PokemonName\", \"Tyranocif\");\r",
+									"pm.collectionVariables.set(\"PokemonGeneration\", 2);\r",
+									"pm.collectionVariables.set(\"PokemonCategorie\", \"Pokémon Armure\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{TestURL}}/{{PokemonId}}",
+							"host": [
+								"{{TestURL}}"
+							],
+							"path": [
+								"{{PokemonId}}"
+							]
+						},
+						"description": "- Validation du statut 200\n    \n- Validation d'une partie du shéma\n    \n- Validation de certaines données retournées\n    \n- Validation du temps de réponse < 5s"
+					},
+					"response": []
+				},
+				{
+					"name": "FichePokemonKO",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Vérification cas non passant : pokemon inexistant",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Validation du retour statut et message \", function () {",
+									"    var jsonData = pm.response.json();",
+									"   // console.log(\"test : \"+jsonData.status);",
+									"   pm.expect(jsonData.status).equals(404);",
+									"   pm.expect(jsonData.message).contains(\"Impossible de trouver le Pokémon\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"PokemonId\", 24888888);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{TestURL}}/{{PokemonId}}",
+							"host": [
+								"{{TestURL}}"
+							],
+							"path": [
+								"{{PokemonId}}"
+							]
+						},
+						"description": "- Validation du statut 200\n- Vérification du message reçu qui doit être \"Impossible de trouver le Pokémon\" avec un statut 404 en code retour"
+					},
+					"response": []
+				}
+			],
+			"description": "**Exemple de l'utilisation des onglets Pre-request Scripts et Tests sur un appel GET:**\n\nTest des données renvoyées, du shéma, du temps de réponse\n\nFichePokemonOK = exemple d'un cas passant\n\nFichePokemonKO = exemple d'un cas non passant"
+		},
+		{
+			"name": "GET avec fichier en entrée",
+			"item": [
+				{
+					"name": "FichePokemonOK",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Teste que pour ce pokemon les données renvoyées sont les bonnes (vérification de quelques unes des valeurs...)",
+									"pm.test(\"Validation du retour (données du Pokemon) \", function () {",
+									"   var jsonData = pm.response.json();",
+									"   console.log(\"Pokemon du fichier : \"+pm.variables.get(\"PokemonName\"));",
+									"   pm.expect(jsonData.pokedexId).equals(pm.variables.get('PokemonIdFile'));",
+									"   pm.expect(jsonData.generation).equals(pm.variables.get(\"PokemonGeneration\"));",
+									"   pm.expect(jsonData.category).equals(pm.variables.get(\"PokemonCategorie\"));",
+									"   pm.expect(jsonData.name.fr).equals(pm.variables.get(\"PokemonName\"));",
+									"});",
+									"",
+									"// Validation d'une partie du schéma",
+									"const ExpectedSchema = {",
+									"  \"properties\": {",
+									"        \"pokedexId\": {",
+									"            \"type\": \"integer\"",
+									"          },",
+									"          \"generation\": {",
+									"            \"type\": \"integer\"",
+									"          },",
+									"          \"category\": {",
+									"            \"type\": \"string\"",
+									"          },",
+									"        \"height\":{",
+									"            \"type\": \"string\"",
+									"          },",
+									"         \"weight\":{",
+									"            \"type\": \"string\"",
+									"          },",
+									"         \"egg_groups\":{",
+									"            \"type\": \"array\"",
+									"          },         ",
+									"         \"name\": ",
+									"          {",
+									"           \"properties\": {",
+									"                \"fr\": {",
+									"                    \"type\": \"string\"",
+									"                },",
+									"                \"en\": {",
+									"                    \"type\": \"string\"",
+									"                },",
+									"                \"jp\": {",
+									"                    \"type\": \"string\"",
+									"            }",
+									"        }",
+									"      }",
+									"  }",
+									"};",
+									"",
+									"pm.test('Validation du shema', function() {",
+									"  pm.response.to.have.jsonSchema(ExpectedSchema);",
+									"});",
+									"",
+									"pm.test(\"validation temps de réponse < 5s\", function () {",
+									"    const fiveSecondsMs = 5_000; // 5 seconds in milliseconds",
+									"    pm.expect(pm.response.responseTime).to.be.below(fiveSecondsMs);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{TestURL}}/{{PokemonIdFile}}",
+							"host": [
+								"{{TestURL}}"
+							],
+							"path": [
+								"{{PokemonIdFile}}"
+							]
+						},
+						"description": "Pour chacun des pokemons du fichier :\n\n- Validation du statut 200\n    \n- Validation d'une partie du shéma\n    \n- Validation de certaines données retournées\n    \n- Validation du temps de réponse < 5s"
+					},
+					"response": []
+				}
+			],
+			"description": "**Exemple de l'utilisation d'un fichier de valeurs en entrée**\n\nUtilisation des infos en entrée pour le GET puis pour vérification que les données renvoyées sont les bonnes."
+		},
+		{
+			"name": "GET Pokemon aléatoire",
+			"item": [
+				{
+					"name": "FichePokemonRandom",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Validation temps de réponse < 5s\", function () {",
+									"    const fiveSecondsMs = 5_000; // 5 seconds in milliseconds",
+									"    pm.expect(pm.response.responseTime).to.be.below(fiveSecondsMs);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{TestURL}}/{{PokemonId}}",
+							"host": [
+								"{{TestURL}}"
+							],
+							"path": [
+								"{{PokemonId}}"
+							]
+						},
+						"description": "Appel d'un pokemon avec un Id aléatoire"
+					},
+					"response": []
+				}
+			],
+			"description": "**Exemple d'un GET avec utilisation d'une valeur aléatoire (Pre-request Script au niveau du dossier)**",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"pm.variables.set(\"PokemonId\", _.random(1,400));"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://postman-echo.com"
+		},
+		{
+			"key": "PokemonId",
+			"value": ""
+		},
+		{
+			"key": "PokemonName",
+			"value": ""
+		},
+		{
+			"key": "PokemonGeneration",
+			"value": ""
+		},
+		{
+			"key": "PokemonCategorie",
+			"value": ""
+		},
+		{
+			"key": "PokemonIdFile",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Id",
+			"value": ""
+		}
+	]
+}
